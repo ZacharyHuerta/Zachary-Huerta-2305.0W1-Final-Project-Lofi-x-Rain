@@ -26,19 +26,20 @@ Cycling through music, room colors, and digital rain variations of your choice w
 
 ## Outcomes
 Ideal Outcomes
--
+- A fully interactive Pygame window showcasing a relaxing study room with digital rain cascading in and out of view outside a window pane as a computer monitor has your desired music scrolling on its display.
+  With buttons that are animated you can control the program through keyboard or mouse, cycling through desired rain, room color theme, and music. 
 
 Minimal Viable Outcome:
--
+- A Pygame window displaying what resembles a room, though maybe not as a cozy as desired, a digital rain still falls outside of the window. Still with a computer in the room displaying what music is be cycled through
+  it just wont look as fancy of animation. A HUD is still displayed but not interactive through buttons, all cycling can be done through displayed keybindings shown in HUD. 
 
 ## Milestones
 
 - Week1
--
+- Create a static room scene that has a clearly defined space for the window to have the rain animation be seen.
 
 - Week 2
--
+- Implement rain animation loop and create new styles that can be cycled through with keyboard controls. Begin designing HUD layout, animation and Button class.
 
 - Week 3
-- 
-
+- Integrate music playback feature via Pygame mixer module and connect all cycling features together with animated HUD feedback / interactive buttons and polish overall presentation of program for submission. 
