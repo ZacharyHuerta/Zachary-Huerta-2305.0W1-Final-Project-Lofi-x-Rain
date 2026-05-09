@@ -336,7 +336,7 @@ def main():
         rain.update(dt)
 
         # --- Draw layers ---
-        screen.fill((30, 30, 40))           # 1. dark background / night sky color
+        screen.fill((255, 255, 255))           # 1. dark background / night sky color
 
         rain_surface.fill((1, 1, 10))     # 2. fill rain surface dark
         rain.draw(rain_surface)
