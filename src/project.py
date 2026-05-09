@@ -1,3 +1,4 @@
+import os
 import random
 import pygame
 import math
@@ -230,9 +231,21 @@ class Rain():
         for trail in self.trails:
             trail.draw(surface)
 
-class Room():
-    
+class Room:
+    def __init__(self, image_path, window_coords):
+        self.window_rect = pygame.Rect(*window_coords)
 
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        abs_path = os.path.join(base_dir, "..", "assets", "images", "room.png")
+
+        # Load image and treat pure black as transparent
+        raw = pygame.image.load(abs_path).convert()
+        raw.set_colorkey((0, 0, 0))        # black becomes transparent
+        self.image = raw
+
+    def draw(self, surface):
+        surface.blit(self.image, (0, 0))
+    
 def draw_hud(surface, font_small, rain, fps):
     lines = [
         f"FPS: {fps:.0f}",
@@ -270,34 +283,31 @@ def main():
 
     hud_font = pygame.font.SysFont("couriernew,monospace,dejavusansmono", 14)
 
-    flags = pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF
-    info = pygame.display.Info()
-    resolution = (max(info.current_w, 1920), max(info.current_h, 1080))
-    screen = pygame.display.set_mode(resolution, flags)
-    pygame.display.set_caption("Digital Rain")
+    resolution = (1280, 720)          # match PNG canvas size
+    screen = pygame.display.set_mode(resolution)
+    pygame.display.set_caption("Study Room")
 
     clock = pygame.time.Clock()
+    fps_cap = 30
     dt = 0
-    fps_cap = 18
     show_hud = True
 
-    rain = Rain(resolution, rain_font)
+    # Window hole coords (x, y, w, h) — corrected for pygame origin
+    room = Room("../assets/images/room.png", (850, 98, 442, 343))
 
-    overlay = pygame.Surface(resolution, pygame.SRCALPHA)
-    overlay.fill((0, 0, 0, 60))
+    rain = Rain((room.window_rect.width, room.window_rect.height), rain_font)
+    rain_surface = pygame.Surface(
+        (room.window_rect.width, room.window_rect.height)
+    )
 
     running = True
     while running:
-        # event loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
-                elif event.key == pygame.K_f:
-                    pygame.display.toggle_fullscreen()
                 elif event.key == pygame.K_t:
                     idx = THEME_NAMES.index(rain.theme_name)
                     rain.theme_name = THEME_NAMES[(idx + 1) % len(THEME_NAMES)]
@@ -309,16 +319,24 @@ def main():
                     rain.birth_rate = max(rain.birth_rate - 1, 1)
                 elif event.key == pygame.K_h:
                     show_hud = not show_hud
-        
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                rain.spawn_burst(event.pos, count=14)
-        # some game logic
+                if room.window_rect.collidepoint(event.pos):
+                    local = (event.pos[0] - room.window_rect.x,
+                             event.pos[1] - room.window_rect.y)
+                    rain.spawn_burst(local, count=14)
+
+        # --- Update ---
         rain.update(dt)
-        # render and display
-        screen.blit(overlay, (0,0))
-        black = pygame.Color(0, 0, 0)
-        screen.fill(black)
-        rain.draw(screen)
+
+        # --- Draw layers ---
+        screen.fill((30, 30, 40))           # 1. dark background / night sky color
+
+        rain_surface.fill((10, 10, 20))     # 2. fill rain surface dark
+        rain.draw(rain_surface)
+        screen.blit(rain_surface,           # 3. blit rain into window position
+                    room.window_rect.topleft)
+
+        room.draw(screen)                   # 4. room drawn on top (black hole = transparent)
 
         if show_hud:
             draw_hud(screen, hud_font, rain, clock.get_fps())
@@ -327,6 +345,9 @@ def main():
         dt = clock.tick(fps_cap)
 
     pygame.quit()
+
+if __name__ == "__main__":
+    main()
 
 #ENJOY THE RAIN
 if __name__ == "__main__":
