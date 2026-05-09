@@ -232,7 +232,7 @@ class Rain():
             trail.draw(surface)
 
 class Room:
-    def __init__(self, image_path, window_coords):
+    def __init__(self, image_path, window_coords, resolution):
         self.window_rect = pygame.Rect(*window_coords)
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -241,7 +241,7 @@ class Room:
         # Load image and treat pure black as transparent
         raw = pygame.image.load(abs_path).convert()
         raw.set_colorkey((0, 0, 0))        # black becomes transparent
-        self.image = pygame.transform.scale(raw, (1456, 816))
+        self.image = pygame.transform.scale(raw, resolution)
 
     def draw(self, surface):
         surface.blit(self.image, (0, 0))
@@ -283,8 +283,10 @@ def main():
 
     hud_font = pygame.font.SysFont("couriernew,monospace,dejavusansmono", 14)
 
-    resolution = (1456, 816)          # match PNG canvas size
-    screen = pygame.display.set_mode(resolution)
+    flags = pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF
+    info = pygame.display.Info()
+    resolution = (info.current_w, info.current_h)          # match PNG canvas size
+    screen = pygame.display.set_mode(resolution, flags)
     pygame.display.set_caption("Study Room")
 
     clock = pygame.time.Clock()
@@ -293,7 +295,7 @@ def main():
     show_hud = True
 
     # Window hole coords (x, y, w, h) — corrected for pygame origin
-    room = Room("../assets/images/room.png", (850, 98, 442, 343))
+    room = Room("../assets/images/room.png", (850, 98, 442, 343), resolution)
 
     rain = Rain((room.window_rect.width, room.window_rect.height), rain_font)
     rain_surface = pygame.Surface(
@@ -331,7 +333,7 @@ def main():
         # --- Draw layers ---
         screen.fill((30, 30, 40))           # 1. dark background / night sky color
 
-        rain_surface.fill((10, 10, 20))     # 2. fill rain surface dark
+        rain_surface.fill((1, 1, 10))     # 2. fill rain surface dark
         rain.draw(rain_surface)
         screen.blit(rain_surface,           # 3. blit rain into window position
                     room.window_rect.topleft)
@@ -345,9 +347,6 @@ def main():
         dt = clock.tick(fps_cap)
 
     pygame.quit()
-
-if __name__ == "__main__":
-    main()
 
 #ENJOY THE RAIN
 if __name__ == "__main__":
