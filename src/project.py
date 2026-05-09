@@ -288,13 +288,10 @@ def main():
     resolution = (info.current_w, info.current_h)          # match PNG canvas size
     screen = pygame.display.set_mode(resolution, flags)
 
-    orig_w, orig_h = 1456, 816
-    scale_x = resolution[0] / orig_w
-    scale_y = resolution[1] / orig_h
-    win_x = int(850 * scale_x)
-    win_y = int(98 * scale_y)
-    win_w = int(442 * scale_x)
-    win_h = int(343 * scale_y)
+    win_x = 946
+    win_y = 160
+    win_w = 659
+    win_h = 517
     pygame.display.set_caption("Study Room")
 
     clock = pygame.time.Clock()
