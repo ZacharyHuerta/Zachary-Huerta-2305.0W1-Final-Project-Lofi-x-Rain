@@ -24,6 +24,15 @@ COLOR_THEMES = {
 
 THEME_NAMES = list(COLOR_THEMES.keys())
 
+ROOM_THEMES = [
+    {"name": "neutral", "color": (0,   0,   0,   0)},
+    {"name": "lofi",    "color": (255, 180, 80,  40)},
+    {"name": "night",   "color": (30,  60,  180, 50)},
+    {"name": "sunset",  "color": (255, 80,  120, 40)},
+    {"name": "forest",  "color": (50,  180, 80,  40)},
+    {"name": "neon",    "color": (180, 0,   255, 45)},
+]
+
 class Particle():
     SHAPE_SQUARE = "square"
     SHAPE_CIRCLE = "circle"
@@ -232,6 +241,7 @@ class Rain():
             trail.draw(surface)
 
 class Room:
+
     def __init__(self, image_path, window_coords, resolution):
         self.window_rect = pygame.Rect(*window_coords)
 
@@ -246,10 +256,51 @@ class Room:
     def draw(self, surface):
         surface.blit(self.image, (0, 0))
     
+class RoomOverlay:
+    def __init__(self, resolution, exclude_rects):
+        self.resolution = resolution
+        self.exclude_rects = exclude_rects # list of rects to punch holes in
+        self.themes = ROOM_THEMES
+        self.current_idx = 0
+        self.target_idx = 0
+        self.fade_speed = 0.02
+        self.blend = 0.0
+
+    def next_theme(self):
+        self.target_idx = (self.current_idx + 1) % len(self.themes)
+        self.blend = 0.0
+
+    def update(self, dt):
+        if self.blend < 1.0:
+            self.blend = min(1.0, self.blend + self.fade_speed)
+            if self.blend >= 1.0:
+                self.current_idx = self.target_idx
+
+    def draw(self, surface):
+        cur = self.themes[self.current_idx]["color"]
+        tgt = self.themes[self.target_idx]["color"]
+
+        # Switching RGBA between current and target
+        r = int(cur[0] + (tgt[0] - cur[0]) * self.blend)
+        g = int(cur[1] + (tgt[1] - cur[1]) * self.blend)
+        b = int(cur[2] + (tgt[2] - cur[2]) * self.blend)
+        a = int(cur[3] + (tgt[3] - cur[3]) * self.blend)
+
+        # Drawing Overlay
+        overlay = pygame.Surface(self.resolution, pygame.SRCALPHA)
+        overlay.fill((r, g, b, a))
+
+        #Punching holes in monitor and window
+        for rect in self.exclude_rects:
+            pygame.draw.rect(overlay, (0, 0, 0, 0), rect)
+
+        surface.blit(overlay, (0,0))
+
 def draw_hud(surface, font_small, rain, fps):
     lines = [
         f"FPS: {fps:.0f}",
         f"Theme: {rain.theme_name.upper()} [T] next [C] auto cycle {'On' if rain.theme_cycle else 'OFF'}",
+        f"Room: {ROOM_THEMES[room_overlay.current_idx]['name'].upper()} [R] next"
         f"Trails: {len(rain.trails)}",
         "[F] fullscreen [+/-] speed [CLICK] burst [ESC] quit"
     ]
@@ -288,10 +339,21 @@ def main():
     resolution = (info.current_w, info.current_h)          # match PNG canvas size
     screen = pygame.display.set_mode(resolution, flags)
 
+    orig_w, orig_h = 1281, 721
+    scale_x = resolution[0] / orig_w
+    scale_y = resolution[1] / orig_h
+
     win_x = 946
     win_y = 160
     win_w = 659
     win_h = 517
+
+    monitor_rect = pygame.Rect(
+        int(352 * scale_x),
+        int(254 * scale_y),
+        int(233 * scale_x),
+        int(147 * scale_y)
+    )
     pygame.display.set_caption("Study Room")
 
     clock = pygame.time.Clock()
@@ -299,8 +361,9 @@ def main():
     dt = 0
     show_hud = True
 
-    # Window hole coords (x, y, w, h) — corrected for pygame origin
+    # Window hole coords (x, y, w, h) — corrected for pygame origin compared to illustrators
     room = Room("../assets/images/room.png", (win_x, win_y, win_w, win_h), resolution)
+    room_overlay = RoomOverlay(resolution, [room.window_rect, monitor_rect])
 
     rain = Rain((room.window_rect.width, room.window_rect.height), rain_font)
     rain_surface = pygame.Surface(
@@ -326,6 +389,8 @@ def main():
                     rain.birth_rate = max(rain.birth_rate - 1, 1)
                 elif event.key == pygame.K_h:
                     show_hud = not show_hud
+                elif event.key == pygame.K_r:
+                    room_overlay.next_theme()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if room.window_rect.collidepoint(event.pos):
                     local = (event.pos[0] - room.window_rect.x,
@@ -344,9 +409,11 @@ def main():
                     room.window_rect.topleft)
 
         room.draw(screen)                   # 4. room drawn on top (black hole = transparent)
+        room_overlay.update(dt)
+        room_overlay.draw(screen)
 
         if show_hud:
-            draw_hud(screen, hud_font, rain, clock.get_fps())
+            draw_hud(screen, hud_font, rain, room_overlay, clock.get_fps())
 
         pygame.display.flip()
         dt = clock.tick(fps_cap)
