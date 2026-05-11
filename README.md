@@ -1,7 +1,7 @@
 # Lofi X Rain
 
 ## Demo
-Demo Video: <ADD YOUTUBE URL AFTER RECORDING>
+Demo Video: https://youtu.be/NNChPL0rcwk
 
 ## GitHub Repository
 https://github.com/ZacharyHuerta/Zachary-Huerta-2305.0W1-Final-Project-Lofi-x-Rain.git
