@@ -344,7 +344,7 @@ class MonitorDisplay:
 
     def update(self, dt):
         self.x -= self.speed * (dt / 1000)
-        text_width = self.font.size(self.text[0])
+        text_width = self.font.size(self.text)[0]
         if self.x < self.rect.left - text_width:
             self.x = float(self.rect.right)
 
@@ -435,7 +435,7 @@ def main():
         int(235 * scale_x),
         int(245 * scale_y),
         int(233 * scale_x),
-        int(147 * scale_y)
+        int(149 * scale_y)
     )
     pygame.display.set_caption("Study Room")
 
