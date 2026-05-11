@@ -545,7 +545,7 @@ def main():
     hud_font = pygame.font.SysFont("couriernew,monospace,dejavusansmono", 14)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     font_path = os.path.join(base_dir, "..", "assets", "fonts", "VT323-Regular.ttf")
-    monitor_font = pygame.Font(font_path, 36)
+    monitor_font = pygame.Font(font_path, 64)
 
     flags = pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF
     info = pygame.display.Info()
