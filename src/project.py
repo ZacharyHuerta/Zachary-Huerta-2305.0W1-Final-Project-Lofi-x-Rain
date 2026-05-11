@@ -267,6 +267,8 @@ class Rain():
         self.screen_res = screen_res
         self.particle_size = 18
         self.birth_rate = 3 #trails per frame
+        self.spawn_counter = 0.0
+        self.spawn_interval = 1.0
         self.trails = []
         self.font = font
         self.theme_name = random.choice(THEME_NAMES)
@@ -302,7 +304,11 @@ class Rain():
                 idx = THEME_NAMES.index(self.theme_name)
                 self.theme_name = THEME_NAMES[(idx + 1) % len(THEME_NAMES)]
 
-        self._birth_new_trails()
+        self.spawn_counter += 1
+        if self.spawn_counter >= self.spawn_interval:
+            self.spawn_counter = 0
+            self._birth_new_trails()
+
         self._update_trails(dt)
 
     def _update_trails(self, dt):
@@ -570,7 +576,7 @@ def main():
     pygame.display.set_caption("Study Room")
 
     clock = pygame.time.Clock()
-    fps_cap = 30
+    fps_cap = 60
     dt = 0
     show_hud = True
 
@@ -605,8 +611,10 @@ def main():
                 elif event.key == pygame.K_c:
                     rain.theme_cycle = not rain.theme_cycle
                 elif event.key in (pygame.K_PLUS, pygame.K_EQUALS, pygame.K_KP_PLUS):
+                    rain.spawn_interval = max(rain.spawn_interval - 0.5, 1.0)
                     rain.birth_rate = min(rain.birth_rate + 1, 20)
                 elif event.key in (pygame.K_MINUS, pygame.K_KP_MINUS):
+                    rain.spawn_interval = min(rain.spawn_interval + 0.5, 10.0)
                     rain.birth_rate = max(rain.birth_rate - 1, 1)
                 elif event.key == pygame.K_h:
                     show_hud = not show_hud
