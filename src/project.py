@@ -349,8 +349,8 @@ def main():
     win_h = 517
 
     monitor_rect = pygame.Rect(
-        int(352 * scale_x),
-        int(254 * scale_y),
+        int(235 * scale_x),
+        int(245 * scale_y),
         int(233 * scale_x),
         int(147 * scale_y)
     )
