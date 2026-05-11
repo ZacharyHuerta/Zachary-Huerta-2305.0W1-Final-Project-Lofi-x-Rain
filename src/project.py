@@ -3,6 +3,7 @@ import random
 import pygame
 import math
 
+AUDIO_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "audio")
 
 # Katakana + ASCII char pool
 KATAKANA = [chr(c) for c in range(0x30A0, 0x30FF)]
@@ -296,11 +297,44 @@ class RoomOverlay:
 
         surface.blit(overlay, (0,0))
 
-def draw_hud(surface, font_small, rain, room_overlay, fps):
+class MusicPlayer:
+    def __init__(self, audio_folder):
+        pygame.mixer.init()
+        self.tracks = [
+            f for f in os.listdir(audio_folder)
+            if f.endswith((".mp3", ".wav"))
+        ]
+        self.tracks.sort()
+        self.audio_folder = audio_folder
+        self.current_idx = 0
+        self.playing = False
+
+    def play(self):
+        if not self.tracks:
+            return
+        
+        path = os.path.join(self.audio_folder, self.tracks[self.current_idx])
+        pygame.mixer.music.fadeout(500)
+        pygame.mixer.music.load(path)
+        pygame.mixer.music.play(-1)
+        self.playing = True
+
+    def next_track(self):
+        self.current_idx = (self.current_idx + 1) % len(self.tracks)
+        self.play()
+
+    def current_track_name(self):
+        if not self.tracks:
+            return "No tracks found"
+        name = self.tracks[self.current_idx]
+        return os.path.splitext(name)[0] #strips file extension
+
+def draw_hud(surface, font_small, rain, room_overlay, music_player, fps):
     lines = [
         f"FPS: {fps:.0f}",
         f"Theme: {rain.theme_name.upper()} [T] next [C] auto cycle {'On' if rain.theme_cycle else 'OFF'}",
         f"Room: {ROOM_THEMES[room_overlay.current_idx]['name'].upper()} [R] next"
+        f"Now Playing: {music_player.current_track_name()} [M] next"
         f"Trails: {len(rain.trails)}",
         "[F] fullscreen [+/-] speed [CLICK] burst [ESC] quit"
     ]
@@ -365,6 +399,9 @@ def main():
     room = Room("../assets/images/room.png", (win_x, win_y, win_w, win_h), resolution)
     room_overlay = RoomOverlay(resolution, [room.window_rect, monitor_rect])
 
+    music_player = MusicPlayer(AUDIO_FOLDER)
+    music_player.play()
+
     rain = Rain((room.window_rect.width, room.window_rect.height), rain_font)
     rain_surface = pygame.Surface(
         (room.window_rect.width, room.window_rect.height)
@@ -391,6 +428,8 @@ def main():
                     show_hud = not show_hud
                 elif event.key == pygame.K_r:
                     room_overlay.next_theme()
+                elif event.key == pygame.K_m:
+                    music_player.next_track()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if room.window_rect.collidepoint(event.pos):
                     local = (event.pos[0] - room.window_rect.x,
@@ -416,7 +455,7 @@ def main():
         room_overlay.draw(screen)
 
         if show_hud:
-            draw_hud(screen, hud_font, rain, room_overlay, clock.get_fps())
+            draw_hud(screen, hud_font, rain, room_overlay, music_player, clock.get_fps())
 
         pygame.display.flip()
         dt = clock.tick(fps_cap)
