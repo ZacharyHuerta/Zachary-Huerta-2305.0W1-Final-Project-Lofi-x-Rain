@@ -314,7 +314,8 @@ class MusicPlayer:
             return
         
         path = os.path.join(self.audio_folder, self.tracks[self.current_idx])
-        pygame.mixer.music.fadeout(500)
+        if pygame.mixer.music.get_busy():
+            pygame.mixer.music.fadeout(500)
         pygame.mixer.music.load(path)
         pygame.mixer.music.play(-1)
         self.playing = True
@@ -332,11 +333,11 @@ class MusicPlayer:
 def draw_hud(surface, font_small, rain, room_overlay, music_player, fps):
     lines = [
         f"FPS: {fps:.0f}",
-        f"Theme: {rain.theme_name.upper()} [T] next [C] auto cycle {'On' if rain.theme_cycle else 'OFF'}",
-        f"Room: {ROOM_THEMES[room_overlay.current_idx]['name'].upper()} [R] next"
-        f"Now Playing: {music_player.current_track_name()} [M] next"
+        f"Rain: {rain.theme_name.upper()} | [T] next | [C] auto cycle |{'On' if rain.theme_cycle else 'OFF'}",
+        f"Room: {ROOM_THEMES[room_overlay.current_idx]['name'].upper()} | [R] next |"
+        f"Now Playing: {music_player.current_track_name()} | [M] next | "
         f"Trails: {len(rain.trails)}",
-        "[F] fullscreen [+/-] speed [CLICK] burst [ESC] quit"
+        "| [F] fullscreen | [+/-] speed | [CLICK] burst | [ESC] quit"
     ]
     y = 6
     for line in lines:
@@ -344,7 +345,7 @@ def draw_hud(surface, font_small, rain, room_overlay, music_player, fps):
         text = font_small.render(line, True, (0, 200, 80))
         surface.blit(shadow, (11, y +1))
         surface.blit(text, (10, y))
-        y += font_small.get_height() + 2
+        y += font_small.get_height() + 6
 
 def main():
     pygame.init()
