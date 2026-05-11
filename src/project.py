@@ -46,10 +46,10 @@ RAIN_STYLES = [
     },
     {
         "name": "chars",
-        "birth_rate": 3,
-        "particle_size": 18,
-        "speed_min": 0.8,
-        "speed_max": 2.2,
+        "birth_rate": 2,
+        "particle_size": 22,
+        "speed_min": 0.4,
+        "speed_max": 0.9,
         "shape": "char",
         "angle": 0,
     },
@@ -64,11 +64,11 @@ RAIN_STYLES = [
     },
     {
         "name": "dense",
-        "birth_rate": 8,
-        "particle_size": 12,
-        "speed_min": 2.0,
-        "speed_max": 4.0,
-        "shape": None,
+        "birth_rate": 12,
+        "particle_size": 10,
+        "speed_min": 3.0,
+        "speed_max": 5.0,
+        "shape": "char",
         "angle": 0,
     },
     {
@@ -82,10 +82,10 @@ RAIN_STYLES = [
     },
     {
         "name": "glitch",
-        "birth_rate": 5,
-        "particle_size": 18,
-        "speed_min": 0.5,
-        "speed_max": 5.0,
+        "birth_rate": 4,
+        "particle_size": 24,
+        "speed_min": 0.1,
+        "speed_max": 8.0,
         "shape": "char",
         "angle": 0,
     },
@@ -96,7 +96,7 @@ RAIN_STYLES = [
         "speed_min": 0.8,
         "speed_max":2.2,
         "shape": None,
-        "angle": 30,
+        "angle": 25,
     },
 ]
 
@@ -440,6 +440,7 @@ class MusicPlayer:
         
         path = os.path.join(self.audio_folder, self.tracks[self.current_idx])
         pygame.mixer.music.stop()
+        pygame.event.clear(pygame.USEREVENT + 1)
         pygame.mixer.music.load(path)
         pygame.mixer.music.play()
         pygame.mixer.music.set_endevent(pygame.USEREVENT + 1)
@@ -516,9 +517,9 @@ class MonitorDisplay:
 def draw_hud(surface, font_small, rain, room_overlay, music_player, fps):
     lines = [
         f"FPS: {fps:.0f}",
-        f"Rain: {rain.theme_name.upper()} | [T] next | [C] auto cycle rain|{'On' if rain.theme_cycle else 'OFF'} | Style: {RAIN_STYLE_NAMES[rain.style_idx].upper()} [S] next Rain Style",
-        f"Room: {ROOM_THEMES[room_overlay.current_idx]['name'].upper()} | [R] next | [B] auto cycle room theme {'On' if room_overlay.auto_cycle else 'OFF'} | ",
-        f"Now Playing: {music_player.current_track_name()} | [M] next music track | [N] 30 sec auto cycle {'On' if music_player.auto_cycle else 'OFF'} ",
+        f"Rain: {rain.theme_name.upper()} | [T] next | [C] auto cycle rain| {'On' if rain.theme_cycle else 'OFF'} | Style: {RAIN_STYLE_NAMES[rain.style_idx].upper()} | [S] next Rain Style",
+        f"Room: {ROOM_THEMES[room_overlay.current_idx]['name'].upper()} | [R] next | [B] auto cycle room theme | {'On' if room_overlay.auto_cycle else 'OFF'} | ",
+        f"Now Playing: {music_player.current_track_name()} | [M] next music track | [N] 30 sec auto cycle | {'On' if music_player.auto_cycle else 'OFF'} |",
         f"Rain Trails: {len(rain.trails)}",
         "| [+/-] rain speed | [CLICK] rain burst | [ESC] quit"
     ]
@@ -550,7 +551,7 @@ def main():
     if rain_font is None:
         rain_font = pygame.font.Font(None, 18)
 
-    hud_font = pygame.font.SysFont("couriernew,monospace,dejavusansmono", 14)
+    hud_font = pygame.font.SysFont("couriernew,monospace,dejavusansmono", 28)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     font_path = os.path.join(base_dir, "..", "assets", "fonts", "VT323-Regular.ttf")
     monitor_font = pygame.Font(font_path, 64)
