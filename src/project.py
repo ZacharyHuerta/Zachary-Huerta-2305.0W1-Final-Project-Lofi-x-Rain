@@ -514,6 +514,46 @@ class MonitorDisplay:
 
         surface.set_clip(old_clip)
 
+class VolumeSlider:
+    def __init__(self, x, y, width, height):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.handle_radius = 8
+        self.volume = 1.0
+        self.dragging = False
+
+    def get_handle_x(self):
+        return int(self.rect.x + self.volume * self.rect.width)
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            hx = self.get_handle_x()
+            hy = self.rect.centery
+            dx = event.pos[0] - hx
+            dy = event.pos[1] - hy
+            if dx * dx + dy * dy <= self.handle_radius ** 2 * 4:
+                self.dragging = True
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.dragging = False
+        elif event.type == pygame.MOUSEMOTION and self.dragging:
+            rel_x = event.pos[0] - self.rect.x
+            self.volume = max(0.0, min(1.0, rel_x / self.rect.width))
+            pygame.mixer.music.set_volume(self.volume)
+
+    def draw(self, surface):
+        # Track background
+        pygame.draw.rect(surface, (40, 40, 40), self.rect, border_radius=4)
+
+        # Filled portion
+        filled = pygame.Rect(self.rect.x, self.rect.y,
+                            int(self.volume * self.rect.width), self.rect.height)
+        pygame.draw.rect(surface, (0, 200, 80), filled, border_radius=4)
+
+        # Handle circle
+        hx = self.get_handle_x()
+        hy = self.rect.centery
+        pygame.draw.circle(surface, (255, 255, 255), (hx, hy), self.handle_radius)
+        pygame.draw.circle(surface, (0, 200, 80), (hx, hy), self.handle_radius - 2)
+
 def draw_hud(surface, font_small, rain, room_overlay, music_player, fps):
     lines = [
         f"FPS: {fps:.0f}",
@@ -523,6 +563,7 @@ def draw_hud(surface, font_small, rain, room_overlay, music_player, fps):
         f"Now Playing: {music_player.current_track_name()} | [M] next music track | [N] 30 sec auto cycle | {'On' if music_player.auto_cycle else 'OFF'} |",
         "| [+/-] rain speed | [CLICK IN RAIN WINDOW] rain burst! | [ESC] quit",
         " Welcome to Lofi X Rain by Zachary Huerta "
+        f"Vol: {int(pygame.mixer.music.get_volume() * 100)}%",
     ]
     y = 6
     for line in lines:
@@ -601,6 +642,8 @@ def main():
         (room.window_rect.width, room.window_rect.height)
     )
 
+    volume_slider = VolumeSlider(10, resolution[1] - 30, 200, 8)
+
     running = True
     while running:
         for event in pygame.event.get():
@@ -664,8 +707,12 @@ def main():
         monitor_display.update(dt)
         monitor_display.draw(screen, rain.theme_name)
 
+        volume_slider.handle_event(event)
+
         if show_hud:
-            draw_hud(screen, hud_font, rain, room_overlay, music_player, clock.get_fps())
+            draw_hud(screen, hud_font, rain, 
+             room_overlay, music_player, clock.get_fps())
+            volume_slider.draw(screen)
 
         pygame.display.flip()
         dt = clock.tick(fps_cap)
